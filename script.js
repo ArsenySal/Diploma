@@ -67,8 +67,8 @@ function calculateEstimates(params) {
     params.friQueries * c.hashBytes;
 
   const kzgProver =
-    params.polynomialCount * params.n * 1.4 +
-    openedValues * params.n * 0.18;
+    params.polynomialCount * params.n * 1.2 +
+    openedValues * params.n * 0.14;
 
   const ipaProver =
     params.polynomialCount * params.n * 1.15 +
@@ -76,42 +76,58 @@ function calculateEstimates(params) {
     openedValues * params.logN * 120;
 
   const friProver =
-    params.polynomialCount * params.n * params.blowupFactor * 0.55 +
-    params.polynomialCount * params.n * params.logN * 0.12 +
+    params.polynomialCount * params.n * params.blowupFactor * 0.5 +
+    params.polynomialCount * params.n * params.logN * 0.1 +
     params.polynomialCount * params.n * params.blowupFactor * c.hashUnit;
 
-  const kzgVerifier =
-    2 * c.pairingCost +
-    openedValues * 18 +
-    params.polynomialCount * 6;
+  const kzgExternalVerifier =
+    2 * 720 +
+    openedValues * 8 +
+    params.polynomialCount * 4;
 
-  const ipaVerifier =
-    params.logN * 95 +
-    openedValues * 28 +
-    params.polynomialCount * 18;
+  const ipaExternalVerifier =
+    params.logN * 92 +
+    openedValues * 22 +
+    params.polynomialCount * 14;
 
-  const friVerifier =
-    params.friQueries * params.logN * 2 * c.hashUnit * 100 +
-    params.friQueries * friLayers * c.fieldUnit * 100 +
-    openedValues * 12;
+  const friExternalVerifier =
+    params.friQueries * params.logN * 2 * c.hashUnit * 55 +
+    params.friQueries * friLayers * c.fieldUnit * 55 +
+    openedValues * 9;
+
+  const kzgCircuitVerifier =
+    24000 +
+    openedValues * 45;
+
+  const ipaCircuitVerifier =
+    params.logN * 520 +
+    openedValues * 70;
+
+  const friCircuitVerifier =
+    params.friQueries * params.logN * 2 * 95 +
+    params.friQueries * friLayers * 25 +
+    openedValues * 35;
 
   return {
     kzg: {
       proofBytes: Math.round(kzgProofBytes),
       proverCost: Math.round(kzgProver),
-      verifierCost: Math.round(kzgVerifier),
+      verifierCost: Math.round(kzgExternalVerifier),
+      circuitVerifierCost: Math.round(kzgCircuitVerifier),
       commitmentBytes: params.polynomialCount * c.kzgGroupBytes
     },
     ipa: {
       proofBytes: Math.round(ipaProofBytes),
       proverCost: Math.round(ipaProver),
-      verifierCost: Math.round(ipaVerifier),
+      verifierCost: Math.round(ipaExternalVerifier),
+      circuitVerifierCost: Math.round(ipaCircuitVerifier),
       commitmentBytes: params.polynomialCount * c.ipaGroupBytes
     },
     fri: {
       proofBytes: Math.round(friProofBytes),
       proverCost: Math.round(friProver),
-      verifierCost: Math.round(friVerifier),
+      verifierCost: Math.round(friExternalVerifier),
+      circuitVerifierCost: Math.round(friCircuitVerifier),
       commitmentBytes: params.polynomialCount * c.hashBytes
     }
   };
@@ -121,41 +137,48 @@ function normalizeCost(value, allValues) {
   const min = Math.min(...allValues);
   const max = Math.max(...allValues);
   if (max === min) return 100;
-  return 100 - ((value - min) / (max - min)) * 70;
+  return 100 - ((value - min) / (max - min)) * 45;
 }
 
 function scoreSchemes(params, estimates) {
   const proofValues = SCHEMES.map((scheme) => estimates[scheme.id].proofBytes);
   const proverValues = SCHEMES.map((scheme) => estimates[scheme.id].proverCost);
-  const verifierValues = SCHEMES.map((scheme) => estimates[scheme.id].verifierCost);
+  const externalVerifierValues = SCHEMES.map((scheme) => estimates[scheme.id].verifierCost);
+  const circuitVerifierValues = SCHEMES.map((scheme) => estimates[scheme.id].circuitVerifierCost);
 
-  const base = {
+  const quality = {
     kzg: {
-      proofSize: normalizeCost(estimates.kzg.proofBytes, proofValues),
-      proverCost: normalizeCost(estimates.kzg.proverCost, proverValues),
-      verifierCost: normalizeCost(estimates.kzg.verifierCost, verifierValues),
-      noTrustedSetup: 25,
-      recursion: 42,
-      transparency: 20,
-      batching: 95
+      compactOpening: 100,
+      externalVerification: 95,
+      inCircuitVerification: normalizeCost(estimates.kzg.circuitVerifierCost, circuitVerifierValues) - 25,
+      proverPracticality: normalizeCost(estimates.kzg.proverCost, proverValues),
+      proofModel: normalizeCost(estimates.kzg.proofBytes, proofValues),
+      noTrustedSetup: 20,
+      recursion: 35,
+      transparency: 10,
+      batching: 96
     },
     ipa: {
-      proofSize: normalizeCost(estimates.ipa.proofBytes, proofValues),
-      proverCost: normalizeCost(estimates.ipa.proverCost, proverValues),
-      verifierCost: normalizeCost(estimates.ipa.verifierCost, verifierValues),
-      noTrustedSetup: 82,
-      recursion: 88,
+      compactOpening: 72,
+      externalVerification: 76,
+      inCircuitVerification: normalizeCost(estimates.ipa.circuitVerifierCost, circuitVerifierValues),
+      proverPracticality: normalizeCost(estimates.ipa.proverCost, proverValues),
+      proofModel: normalizeCost(estimates.ipa.proofBytes, proofValues),
+      noTrustedSetup: 86,
+      recursion: 92,
       transparency: 62,
-      batching: 75
+      batching: 78
     },
     fri: {
-      proofSize: normalizeCost(estimates.fri.proofBytes, proofValues),
-      proverCost: normalizeCost(estimates.fri.proverCost, proverValues),
-      verifierCost: normalizeCost(estimates.fri.verifierCost, verifierValues),
-      noTrustedSetup: 98,
-      recursion: 64,
-      transparency: 98,
-      batching: 68
+      compactOpening: 40,
+      externalVerification: 62,
+      inCircuitVerification: normalizeCost(estimates.fri.circuitVerifierCost, circuitVerifierValues),
+      proverPracticality: normalizeCost(estimates.fri.proverCost, proverValues),
+      proofModel: normalizeCost(estimates.fri.proofBytes, proofValues),
+      noTrustedSetup: 100,
+      recursion: 60,
+      transparency: 100,
+      batching: 66
     }
   };
 
@@ -163,32 +186,24 @@ function scoreSchemes(params, estimates) {
   const result = {};
 
   for (const scheme of SCHEMES) {
-    const s = base[scheme.id];
+    const q = quality[scheme.id];
 
     let total =
-      s.proofSize * weights.proofSize +
-      s.proverCost * weights.proverCost +
-      s.verifierCost * weights.verifierCost +
-      s.noTrustedSetup * weights.noTrustedSetup +
-      s.recursion * weights.recursion +
-      s.transparency * weights.transparency +
-      s.batching * weights.batching;
+      q.compactOpening * weights.compactOpening +
+      q.externalVerification * weights.externalVerification +
+      q.inCircuitVerification * weights.inCircuitVerification +
+      q.proverPracticality * weights.proverPracticality +
+      q.proofModel * weights.proofModel +
+      q.noTrustedSetup * weights.noTrustedSetup +
+      q.recursion * weights.recursion +
+      q.transparency * weights.transparency +
+      q.batching * weights.batching;
 
-    if (!params.trustedSetupAllowed && scheme.id === "kzg") {
-      total -= 35;
-    }
-
-    if (params.recursionRequired && scheme.id === "kzg") {
-      total -= 18;
-    }
-
-    if (params.transparencyRequired && scheme.id !== "fri") {
-      total -= scheme.id === "kzg" ? 45 : 18;
-    }
+    total += scenarioAdjustment(scheme.id, params);
 
     result[scheme.id] = {
       score: Math.max(0, Math.min(100, Math.round(total))),
-      components: s
+      components: q
     };
   }
 
@@ -198,71 +213,147 @@ function scoreSchemes(params, estimates) {
 function getWeights(params) {
   const presets = {
     balanced: {
-      proofSize: 0.2,
-      proverCost: 0.15,
-      verifierCost: 0.17,
-      noTrustedSetup: 0.15,
-      recursion: 0.15,
-      transparency: 0.1,
-      batching: 0.08
+      compactOpening: 0.20,
+      externalVerification: 0.18,
+      inCircuitVerification: 0.04,
+      proverPracticality: 0.10,
+      proofModel: 0.12,
+      noTrustedSetup: 0.10,
+      recursion: 0.08,
+      transparency: 0.06,
+      batching: 0.12
     },
     proofSize: {
-      proofSize: 0.48,
-      proverCost: 0.07,
-      verifierCost: 0.18,
-      noTrustedSetup: 0.06,
-      recursion: 0.07,
-      transparency: 0.04,
-      batching: 0.1
+      compactOpening: 0.42,
+      externalVerification: 0.15,
+      inCircuitVerification: 0.02,
+      proverPracticality: 0.06,
+      proofModel: 0.20,
+      noTrustedSetup: 0.03,
+      recursion: 0.02,
+      transparency: 0.02,
+      batching: 0.08
     },
     verifierCost: {
-      proofSize: 0.15,
-      proverCost: 0.08,
-      verifierCost: 0.45,
-      noTrustedSetup: 0.08,
-      recursion: 0.12,
-      transparency: 0.04,
+      compactOpening: 0.12,
+      externalVerification: 0.46,
+      inCircuitVerification: 0.06,
+      proverPracticality: 0.06,
+      proofModel: 0.10,
+      noTrustedSetup: 0.05,
+      recursion: 0.04,
+      transparency: 0.03,
       batching: 0.08
     },
     proverCost: {
-      proofSize: 0.12,
-      proverCost: 0.45,
-      verifierCost: 0.12,
-      noTrustedSetup: 0.08,
-      recursion: 0.08,
-      transparency: 0.07,
+      compactOpening: 0.08,
+      externalVerification: 0.08,
+      inCircuitVerification: 0.04,
+      proverPracticality: 0.44,
+      proofModel: 0.12,
+      noTrustedSetup: 0.06,
+      recursion: 0.06,
+      transparency: 0.04,
       batching: 0.08
     },
     noTrustedSetup: {
-      proofSize: 0.1,
-      proverCost: 0.08,
-      verifierCost: 0.1,
-      noTrustedSetup: 0.46,
-      recursion: 0.1,
-      transparency: 0.1,
-      batching: 0.06
+      compactOpening: 0.08,
+      externalVerification: 0.08,
+      inCircuitVerification: 0.08,
+      proverPracticality: 0.08,
+      proofModel: 0.08,
+      noTrustedSetup: 0.42,
+      recursion: 0.08,
+      transparency: 0.05,
+      batching: 0.05
     },
     recursion: {
-      proofSize: 0.1,
-      proverCost: 0.08,
-      verifierCost: 0.16,
-      noTrustedSetup: 0.12,
-      recursion: 0.42,
-      transparency: 0.06,
-      batching: 0.06
+      compactOpening: 0.07,
+      externalVerification: 0.06,
+      inCircuitVerification: 0.28,
+      proverPracticality: 0.08,
+      proofModel: 0.09,
+      noTrustedSetup: 0.10,
+      recursion: 0.26,
+      transparency: 0.03,
+      batching: 0.03
     },
     transparency: {
-      proofSize: 0.08,
-      proverCost: 0.08,
-      verifierCost: 0.1,
-      noTrustedSetup: 0.2,
-      recursion: 0.08,
+      compactOpening: 0.04,
+      externalVerification: 0.06,
+      inCircuitVerification: 0.08,
+      proverPracticality: 0.06,
+      proofModel: 0.06,
+      noTrustedSetup: 0.18,
+      recursion: 0.06,
       transparency: 0.42,
       batching: 0.04
     }
   };
 
   return presets[params.priority] ?? presets.balanced;
+}
+
+function scenarioAdjustment(schemeId, params) {
+  let adjustment = 0;
+
+  if (params.priority === "proofSize" && schemeId === "kzg" && params.trustedSetupAllowed) {
+    adjustment += 8;
+  }
+
+  if (params.priority === "verifierCost" && schemeId === "kzg" && !params.recursionRequired) {
+    adjustment += 6;
+  }
+
+  if (params.priority === "recursion" && schemeId === "ipa") {
+    adjustment += 8;
+  }
+
+  if (params.priority === "transparency" && schemeId === "fri") {
+    adjustment += 10;
+  }
+
+  if (params.priority === "noTrustedSetup" && schemeId === "kzg") {
+    adjustment -= 30;
+  }
+
+  if (!params.trustedSetupAllowed && schemeId === "kzg") {
+    adjustment -= 38;
+  }
+
+  if (!params.trustedSetupAllowed && schemeId === "ipa") {
+    adjustment += 4;
+  }
+
+  if (!params.trustedSetupAllowed && schemeId === "fri") {
+    adjustment += 6;
+  }
+
+  if (params.recursionRequired && schemeId === "kzg") {
+    adjustment -= 26;
+  }
+
+  if (params.recursionRequired && schemeId === "ipa") {
+    adjustment += 10;
+  }
+
+  if (params.recursionRequired && schemeId === "fri") {
+    adjustment -= 2;
+  }
+
+  if (params.transparencyRequired && schemeId === "fri") {
+    adjustment += 16;
+  }
+
+  if (params.transparencyRequired && schemeId === "ipa") {
+    adjustment -= 22;
+  }
+
+  if (params.transparencyRequired && schemeId === "kzg") {
+    adjustment -= 50;
+  }
+
+  return adjustment;
 }
 
 function renderSchemeCards(estimates) {
@@ -334,15 +425,15 @@ function renderRecommendation(scores, params) {
 
 function buildRecommendationText(schemeId, params) {
   if (schemeId === "kzg") {
-    return "KZG выбран потому, что в заданном сценарии сильнее всего ценятся компактное открытие, эффективный батчинг и короткая внешняя проверка. Ограничение: схема опирается на structured SRS и pairing-проверки.";
+    return "KZG выбран потому, что в этом сценарии важнее compact opening, эффективный батчинг и короткая внешняя проверка. Это корректно только при допущении trusted setup и pairing-friendly кривых.";
   }
 
   if (schemeId === "ipa") {
-    return "IPA выбран потому, что сценарий лучше согласуется с pairing-free verifier, отсутствием toxic waste и рекурсивной проверкой. Ограничение: opening proof растет как O(log n).";
+    return "IPA выбран потому, что сценарий лучше согласуется с pairing-free verifier, отсутствием toxic waste и рекурсивной проверкой. Это не означает минимальный proof size: открытие остается логарифмическим.";
   }
 
   if (schemeId === "fri") {
-    return "FRI выбран потому, что в сценарии важны прозрачность, отсутствие SRS и STARK-like модель. Ограничение: proof крупнее из-за Merkle paths, FRI-слоев и query complexity.";
+    return "FRI выбран потому, что в сценарии важны прозрачность, отсутствие SRS и STARK-like модель. Цена такого выбора — более крупный proof и hash-heavy verification.";
   }
 
   return "Рекомендация не определена.";
