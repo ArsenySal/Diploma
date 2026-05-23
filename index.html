@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Polynomial Commitment Comparator</title>
+  <meta
+    name="description"
+    content="Демонстрационный web-инструмент для сравнения KZG, IPA и FRI по параметрам zero-knowledge протоколов."
+  />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="page-header">
+    <div class="header-content">
+      <p class="eyebrow">Демонстрационный web-инструмент</p>
+      <h1>Polynomial Commitment Comparator</h1>
+      <p class="subtitle">
+        Сравнение KZG, IPA и FRI по модельным параметрам: размер proof,
+        стоимость prover/verifier, trusted setup, батчинг и пригодность для рекурсии.
+      </p>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel controls-panel" aria-labelledby="controls-title">
+      <div class="section-heading">
+        <p class="eyebrow">Входные параметры</p>
+        <h2 id="controls-title">Сценарий протокола</h2>
+      </div>
+
+      <form id="params-form" class="controls-grid">
+        <label class="field">
+          <span>Размер полинома / вектора n</span>
+          <select id="degree-power" name="degreePower">
+            <option value="10">2¹⁰ = 1 024</option>
+            <option value="12">2¹² = 4 096</option>
+            <option value="14">2¹⁴ = 16 384</option>
+            <option value="16" selected>2¹⁶ = 65 536</option>
+            <option value="18">2¹⁸ = 262 144</option>
+            <option value="20">2²⁰ = 1 048 576</option>
+            <option value="22">2²² = 4 194 304</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Число полиномов m</span>
+          <input id="polynomial-count" name="polynomialCount" type="number" min="1" max="64" step="1" value="6" />
+        </label>
+
+        <label class="field">
+          <span>Число точек открытия t</span>
+          <input id="opening-points" name="openingPoints" type="number" min="1" max="32" step="1" value="2" />
+        </label>
+
+        <label class="field">
+          <span>FRI queries q</span>
+          <input id="fri-queries" name="friQueries" type="number" min="4" max="128" step="1" value="32" />
+        </label>
+
+        <label class="field">
+          <span>Blowup factor для FRI</span>
+          <select id="blowup-factor" name="blowupFactor">
+            <option value="4">4</option>
+            <option value="8" selected>8</option>
+            <option value="16">16</option>
+          </select>
+        </label>
+
+        <label class="field wide">
+          <span>Главный приоритет</span>
+          <select id="priority" name="priority">
+            <option value="balanced" selected>Сбалансированный выбор</option>
+            <option value="proofSize">Минимальный размер proof</option>
+            <option value="verifierCost">Минимальная стоимость verifier</option>
+            <option value="proverCost">Минимальная стоимость prover</option>
+            <option value="noTrustedSetup">Отсутствие trusted setup</option>
+            <option value="recursion">Рекурсивная проверка</option>
+            <option value="transparency">Прозрачность / STARK-like подход</option>
+          </select>
+        </label>
+
+        <div class="switch-group wide">
+          <label class="switch-line">
+            <input id="trusted-setup-allowed" type="checkbox" checked />
+            <span>Trusted setup допустим</span>
+          </label>
+
+          <label class="switch-line">
+            <input id="recursion-required" type="checkbox" />
+            <span>Нужна рекурсивная проверка</span>
+          </label>
+
+          <label class="switch-line">
+            <input id="transparency-required" type="checkbox" />
+            <span>Нужна прозрачная схема без SRS</span>
+          </label>
+        </div>
+      </form>
+
+      <div class="note">
+        <strong>Важно:</strong> инструмент не реализует KZG, IPA или FRI криптографически.
+        Он показывает сравнительную модель на основе асимптотических и качественных свойств схем.
+      </div>
+    </section>
+
+    <section class="panel recommendation-panel" aria-labelledby="recommendation-title">
+      <div class="section-heading">
+        <p class="eyebrow">Результат</p>
+        <h2 id="recommendation-title">Рекомендация по сценарию</h2>
+      </div>
+
+      <div id="recommendation-card" class="recommendation-card">
+        <div>
+          <p class="recommendation-label">Наиболее подходящая схема</p>
+          <h3 id="recommended-scheme">—</h3>
+        </div>
+        <p id="recommendation-text">Измените параметры, чтобы получить рекомендацию.</p>
+      </div>
+
+      <div class="score-bars" id="score-bars" aria-label="Сравнение итоговых баллов"></div>
+    </section>
+
+    <section class="cards-grid" id="scheme-cards" aria-label="Карточки схем"></section>
+
+    <section class="panel table-panel" aria-labelledby="model-title">
+      <div class="section-heading">
+        <p class="eyebrow">Модельные оценки</p>
+        <h2 id="model-title">Расчетные значения</h2>
+      </div>
+
+      <div class="table-wrap">
+        <table id="estimates-table">
+          <thead>
+            <tr>
+              <th>Схема</th>
+              <th>Commitment</th>
+              <th>Opening proof</th>
+              <th>Proof size, усл. байты</th>
+              <th>Prover cost, усл. ед.</th>
+              <th>Verifier cost, усл. ед.</th>
+              <th>Setup</th>
+              <th>Recursion</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel explanation-panel" aria-labelledby="explanation-title">
+      <div class="section-heading">
+        <p class="eyebrow">Интерпретация</p>
+        <h2 id="explanation-title">Как читать результаты</h2>
+      </div>
+
+      <div class="explanation-grid">
+        <article>
+          <h3>KZG</h3>
+          <p>
+            Выигрывает при приоритете компактного proof и быстрой внешней проверки.
+            Основная цена — structured reference string и pairing-проверки.
+          </p>
+        </article>
+
+        <article>
+          <h3>IPA</h3>
+          <p>
+            Не требует toxic waste и использует pairing-free verifier.
+            Proof растет логарифмически, но такая форма часто удобнее для рекурсивных систем.
+          </p>
+        </article>
+
+        <article>
+          <h3>FRI</h3>
+          <p>
+            Подходит для прозрачных STARK-like систем.
+            Proof крупнее из-за Merkle paths и FRI-слоев, зато не нужен trusted setup.
+          </p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="page-footer">
+    <p>
+      Модель предназначена для учебного сравнения commitment layer. Реальные параметры зависят
+      от кривой, поля, хэш-функции, FFT/LDE, реализации MSM и конкретного протокола.
+    </p>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
