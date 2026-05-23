@@ -11,7 +11,7 @@ const SCHEMES = [
     prover: "MSM по SRS, quotient polynomial, opening commitment",
     verifier: "Константное число pairing-проверок",
     batching: "Сильный батчинг через случайные линейные комбинации и quotient polynomial",
-    recursion: "Слабее для глубокой рекурсии: pairing-проверку дорого арифметизовать",
+    recursion: "Хуже для глубокой рекурсии: pairing-проверку дорого арифметизовать",
     thesisComment:
       "Выигрывает, когда главные критерии — минимальный размер открытия и короткая внешняя проверка. Цена — trusted setup и pairings.",
     badge: "compact proof"
@@ -58,8 +58,10 @@ const MODEL_CONSTANTS = {
   fieldBytes: 32,
   scalarBytes: 32,
   hashBytes: 32,
-  pairingCost: 1200,
-  msmUnit: 1,
+  pairingExternalCost: 720,
+  pairingCircuitCost: 12000,
+  curveCircuitCost: 520,
+  hashCircuitCost: 95,
   hashUnit: 0.35,
   fieldUnit: 0.08
 };

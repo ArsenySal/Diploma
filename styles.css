@@ -1,16 +1,10 @@
 :root {
   --bg: #0f172a;
-  --bg-soft: #111c33;
   --panel: #f8fafc;
-  --panel-2: #eef2f7;
   --text: #0f172a;
   --muted: #64748b;
   --line: #d7dee9;
   --accent: #2563eb;
-  --accent-dark: #1d4ed8;
-  --good: #0f766e;
-  --warn: #b45309;
-  --bad: #b91c1c;
   --shadow: 0 18px 50px rgba(15, 23, 42, 0.14);
   --radius: 22px;
 }
@@ -354,7 +348,7 @@ select:focus {
 
 table {
   width: 100%;
-  min-width: 940px;
+  min-width: 1100px;
   border-collapse: collapse;
 }
 
@@ -381,6 +375,10 @@ td {
 
 td:first-child {
   font-weight: 900;
+}
+
+small {
+  color: #64748b;
 }
 
 .explanation-grid {

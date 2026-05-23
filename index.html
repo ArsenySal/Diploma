@@ -72,7 +72,7 @@
           <select id="priority" name="priority">
             <option value="balanced" selected>Сбалансированный выбор</option>
             <option value="proofSize">Минимальный размер proof</option>
-            <option value="verifierCost">Минимальная стоимость verifier</option>
+            <option value="verifierCost">Минимальная внешняя проверка</option>
             <option value="proverCost">Минимальная стоимость prover</option>
             <option value="noTrustedSetup">Отсутствие trusted setup</option>
             <option value="recursion">Рекурсивная проверка</option>
@@ -138,9 +138,9 @@
               <th>Opening proof</th>
               <th>Proof size, усл. байты</th>
               <th>Prover cost, усл. ед.</th>
-              <th>Verifier cost, усл. ед.</th>
+              <th>External verifier, усл. ед.</th>
+              <th>In-circuit verifier, усл. ед.</th>
               <th>Setup</th>
-              <th>Recursion</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -158,24 +158,24 @@
         <article>
           <h3>KZG</h3>
           <p>
-            Выигрывает при приоритете компактного proof и быстрой внешней проверки.
-            Основная цена — structured reference string и pairing-проверки.
+            Сильный выбор для compact SNARK-сценария: constant-size opening,
+            хороший батчинг и короткая внешняя проверка. Минус — SRS и pairings.
           </p>
         </article>
 
         <article>
           <h3>IPA</h3>
           <p>
-            Не требует toxic waste и использует pairing-free verifier.
-            Proof растет логарифмически, но такая форма часто удобнее для рекурсивных систем.
+            Сильный выбор для pairing-free и рекурсивных конструкций.
+            Proof растет как O(log n), но verifier легче переносить внутрь circuit.
           </p>
         </article>
 
         <article>
           <h3>FRI</h3>
           <p>
-            Подходит для прозрачных STARK-like систем.
-            Proof крупнее из-за Merkle paths и FRI-слоев, зато не нужен trusted setup.
+            Сильный выбор для transparent/STARK-like сценария.
+            Proof крупнее, но нет trusted setup и нет elliptic-curve assumptions.
           </p>
         </article>
       </div>
