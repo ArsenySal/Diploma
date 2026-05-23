@@ -10,7 +10,6 @@ const formElements = {
   transparencyRequired: document.getElementById("transparency-required")
 };
 
-const schemeCardsContainer = document.getElementById("scheme-cards");
 const estimatesTableBody = document.querySelector("#estimates-table tbody");
 const recommendedSchemeElement = document.getElementById("recommended-scheme");
 const recommendationTextElement = document.getElementById("recommendation-text");
@@ -254,38 +253,6 @@ function addModelTieBreakers(scores, estimates, params) {
   }
 }
 
-function renderSchemeCards(estimates) {
-  schemeCardsContainer.innerHTML = "";
-
-  for (const scheme of SCHEMES) {
-    const estimate = estimates[scheme.id];
-
-    const card = document.createElement("article");
-    card.className = "scheme-card";
-    card.innerHTML = `
-      <div class="scheme-card-header">
-        <div class="scheme-title">
-          <h3>${scheme.name}</h3>
-          <p>${scheme.family}</p>
-        </div>
-        <span class="badge">${scheme.badge}</span>
-      </div>
-
-      <ul class="metric-list">
-        <li class="metric"><span>Криптографическая основа</span><span>${scheme.cryptoBase}</span></li>
-        <li class="metric"><span>Commitment</span><span>${scheme.commitment}</span></li>
-        <li class="metric"><span>Opening proof</span><span>${scheme.openingProof}</span></li>
-        <li class="metric"><span>Setup</span><span>${scheme.setup}</span></li>
-        <li class="metric"><span>Proof size, усл. байты</span><span>${formatNumber(estimate.proofBytes)}</span></li>
-      </ul>
-
-      <p class="scheme-comment">${scheme.thesisComment}</p>
-    `;
-
-    schemeCardsContainer.appendChild(card);
-  }
-}
-
 function renderTable(estimates) {
   estimatesTableBody.innerHTML = "";
 
@@ -323,15 +290,15 @@ function renderRecommendation(scores) {
 
 function buildRecommendationText(schemeId) {
   if (schemeId === "kzg") {
-    return "KZG выбран потому, что в этом сценарии важнее constant-size opening, компактный proof, сильный батчинг и короткая внешняя проверка. Это корректно при допущении trusted setup и pairing-friendly кривых.";
+    return "KZG выбран по совокупности заданных параметров: компактное открытие, короткая внешняя проверка и допустимость trusted setup.";
   }
 
   if (schemeId === "ipa") {
-    return "IPA выбран потому, что сценарий лучше согласуется с pairing-free verifier, отсутствием toxic waste и рекурсивной проверкой. Это не означает минимальный proof size: открытие остается логарифмическим.";
+    return "IPA выбран по совокупности заданных параметров: pairing-free проверка, логарифмическое открытие и пригодность для рекурсивного сценария.";
   }
 
   if (schemeId === "fri") {
-    return "FRI выбран потому, что в сценарии важны прозрачность, отсутствие SRS и STARK-like модель. Цена такого выбора — более крупный proof и hash-heavy verification.";
+    return "FRI выбран по совокупности заданных параметров: прозрачная модель, Merkle-based commitment и отсутствие structured SRS.";
   }
 
   return "Рекомендация не определена.";
@@ -372,7 +339,6 @@ function update() {
   const estimates = calculateEstimates(params);
   const scores = scoreSchemes(params, estimates);
 
-  renderSchemeCards(estimates);
   renderTable(estimates);
   renderRecommendation(scores);
   renderScoreBars(scores);

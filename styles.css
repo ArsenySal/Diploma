@@ -95,15 +95,11 @@ h3 {
   padding-bottom: 40px;
 }
 
-.panel,
-.scheme-card {
+.panel {
   background: rgba(248, 250, 252, 0.96);
   border: 1px solid rgba(215, 222, 233, 0.95);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-}
-
-.panel {
   padding: 24px;
 }
 
@@ -245,108 +241,8 @@ select:focus {
   transition: width 200ms ease;
 }
 
-.cards-grid {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.scheme-card {
-  padding: 22px;
-}
-
-.scheme-card-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: start;
-  margin-bottom: 16px;
-}
-
-.scheme-title {
-  display: grid;
-  gap: 5px;
-}
-
-.scheme-title p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.88rem;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #e0f2fe;
-  color: #075985;
-  font-size: 0.78rem;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.metric-list {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.metric {
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.metric:last-child {
-  border-bottom: 0;
-  padding-bottom: 0;
-}
-
-.metric span:first-child {
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
-.metric span:last-child {
-  max-width: 55%;
-  text-align: right;
-  font-weight: 800;
-}
-
-.scheme-comment {
-  margin: 16px 0 0;
-  color: #475569;
-  font-size: 0.95rem;
-}
-
-.scoring-panel,
 .table-panel {
   grid-column: 1 / -1;
-}
-
-.scoring-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.scoring-grid article {
-  padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: #fff;
-}
-
-.scoring-grid p {
-  margin: 10px 0 0;
-  color: #475569;
 }
 
 .table-wrap {
@@ -397,11 +293,6 @@ small {
   .recommendation-panel {
     grid-column: 1 / -1;
   }
-
-  .cards-grid,
-  .scoring-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 620px) {
@@ -414,8 +305,7 @@ small {
     width: min(100% - 22px, 1180px);
   }
 
-  .panel,
-  .scheme-card {
+  .panel {
     border-radius: 18px;
     padding: 18px;
   }
