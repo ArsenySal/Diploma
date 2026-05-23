@@ -308,7 +308,7 @@ function renderTable(estimates) {
   }
 }
 
-function renderRecommendation(scores, params) {
+function renderRecommendation(scores) {
   const ranked = SCHEMES
     .map((scheme) => ({
       ...scheme,
@@ -374,7 +374,7 @@ function update() {
 
   renderSchemeCards(estimates);
   renderTable(estimates);
-  renderRecommendation(scores, params);
+  renderRecommendation(scores);
   renderScoreBars(scores);
 }
 

@@ -97,11 +97,6 @@
           </label>
         </div>
       </form>
-
-      <div class="note">
-        <strong>Важно:</strong> инструмент не реализует KZG, IPA или FRI криптографически.
-        Он показывает сравнительную модель на основе асимптотических и качественных свойств схем.
-      </div>
     </section>
 
     <section class="panel recommendation-panel" aria-labelledby="recommendation-title">
@@ -122,6 +117,39 @@
     </section>
 
     <section class="cards-grid" id="scheme-cards" aria-label="Карточки схем"></section>
+
+    <section class="panel scoring-panel" aria-labelledby="scoring-title">
+      <div class="section-heading">
+        <p class="eyebrow">Методика</p>
+        <h2 id="scoring-title">Как формируется рекомендация</h2>
+      </div>
+
+      <div class="scoring-grid">
+        <article>
+          <h3>Размер доказательства</h3>
+          <p>
+            Приоритет compact proof усиливает KZG, поскольку открытие имеет постоянный размер.
+            IPA получает логарифмическую оценку, а FRI — оценку, зависящую от числа запросов и Merkle paths.
+          </p>
+        </article>
+
+        <article>
+          <h3>Проверка</h3>
+          <p>
+            Для внешней проверки учитываются pairing-проверки в KZG, групповые операции в IPA и hash/path checks в FRI.
+            Для рекурсивного сценария отдельно учитывается стоимость переноса verifier внутрь circuit.
+          </p>
+        </article>
+
+        <article>
+          <h3>Ограничения сценария</h3>
+          <p>
+            Если trusted setup запрещен, KZG получает штраф. Если требуется рекурсия, повышается оценка IPA.
+            Если требуется прозрачная STARK-like модель, повышается оценка FRI.
+          </p>
+        </article>
+      </div>
+    </section>
 
     <section class="panel table-panel" aria-labelledby="model-title">
       <div class="section-heading">
@@ -147,47 +175,7 @@
         </table>
       </div>
     </section>
-
-    <section class="panel explanation-panel" aria-labelledby="explanation-title">
-      <div class="section-heading">
-        <p class="eyebrow">Интерпретация</p>
-        <h2 id="explanation-title">Как читать результаты</h2>
-      </div>
-
-      <div class="explanation-grid">
-        <article>
-          <h3>KZG</h3>
-          <p>
-            Сильный выбор для compact SNARK-сценария: constant-size opening,
-            хороший батчинг и короткая внешняя проверка. Минус — SRS и pairings.
-          </p>
-        </article>
-
-        <article>
-          <h3>IPA</h3>
-          <p>
-            Сильный выбор для pairing-free и рекурсивных конструкций.
-            Proof растет как O(log n), но verifier легче переносить внутрь circuit.
-          </p>
-        </article>
-
-        <article>
-          <h3>FRI</h3>
-          <p>
-            Сильный выбор для transparent/STARK-like сценария.
-            Proof крупнее, но нет trusted setup и нет elliptic-curve assumptions.
-          </p>
-        </article>
-      </div>
-    </section>
   </main>
-
-  <footer class="page-footer">
-    <p>
-      Модель предназначена для учебного сравнения commitment layer. Реальные параметры зависят
-      от кривой, поля, хэш-функции, FFT/LDE, реализации MSM и конкретного протокола.
-    </p>
-  </footer>
 
   <script src="data.js"></script>
   <script src="script.js"></script>
